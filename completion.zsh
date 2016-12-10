@@ -19,17 +19,27 @@ fnc-complete() {
 
   tokens=(${(z)LBUFFER})
   if [[ $LBUFFER[-1] = ' ' ]]; then
-    tokens+=("")
+    tokens+=("./")
   fi
 
-  fnc_arg=$(pwd)/${tokens[-1]}
-  fnc_menu=("${(@f)$($FN_COMPLETE complete $fnc_arg)}")
-  if [[ $fnc_menu[1] = "" ]]; then
-    fnc_menu=()
-  fi
-  (( fnc_select = 0 ))
+  if [[ $tokens[-1] = "~" ]]; then
+    LBUFFER+="/"
+    zle -K $fnc_prev_keymap
+  else
+    eval fnc_arg=$tokens[-1]
+    fnc_arg=$(realpath $fnc_arg)
+    if [[ ${tokens[-1]:(-1)} = "/" ]]; then
+      fnc_arg+="/"
+    fi
 
-  fnc-next
+    fnc_menu=("${(@f)$($FN_COMPLETE complete $fnc_arg)}")
+    if [[ $fnc_menu[1] = "" ]]; then
+      fnc_menu=()
+    fi
+    (( fnc_select = 0 ))
+
+    fnc-next
+  fi
 }
 
 zle -N fnc-next
