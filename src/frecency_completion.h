@@ -1,20 +1,19 @@
 #pragma once
 
-#include <time.h>
-
 #include <cmath>
 #include <vector>
 #include <string>
 #include <map>
 
+#include "file_system.h"
 #include "completion.h"
 
 using namespace std;
 
-double BONUS = 10;
-double HALF_LIFE = 60;
+#define BONUS 10.0
+#define HALF_LIFE 60.0
 
-string FRECENCY_FILE = "frecency";
+#define FRECENCY_FILE (string("frecency"))
 
 class FrecencyFile : public LexFile {
 public:
@@ -30,7 +29,7 @@ protected:
   long long last_t;
 
 public:
-  FrecencyCompletion(string path) : Completion<FrecencyFile>(path) {
+  FrecencyCompletion(FileSystem<FrecencyFile> &_fs, string path) : Completion<FrecencyFile>(_fs, path) {
     FILE *f = fopen((DATA_DIR + FRECENCY_FILE).c_str(), "r");
     if (f != NULL) {
       char path[1024];
@@ -62,7 +61,7 @@ public:
     if (i == matches.size())
       return;
 
-    long long now_t = time(NULL);
+    long long now_t = this->get_time();
     long long diff_t = now_t - last_t;
     for (map<string, double>::iterator it = frecency.begin(); it != frecency.end(); it++) {
       it->second *= exp2(-((double) diff_t / HALF_LIFE));
