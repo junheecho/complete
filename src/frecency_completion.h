@@ -1,18 +1,44 @@
 #pragma once
 
+#include <fstream>
 #include <cmath>
 #include <vector>
 #include <string>
 #include <map>
 
+#include "symbreg.h"
 #include "file_system.h"
 #include "completion.h"
 
 using namespace std;
 
-#define BONUS 10.0
+#define BONUS 1
 
 #define FRECENCY_FILE (string("frecency"))
+#define FRECENCY_SETTING (string("frecency.conf"))
+
+class FrecencySettings {
+public:
+  static Node *symbreg;
+  static void init() {
+    ifstream f;
+    string rpn;
+
+    f.open(DATA_DIR + FRECENCY_SETTING);
+    if (!f.is_open()) {
+      ofstream ff;
+
+      ff.open(DATA_DIR + FRECENCY_SETTING);
+      ff << "x1" << endl;
+      ff.close();
+
+      f.open(DATA_DIR + FRECENCY_SETTING);
+    }
+    getline(f, rpn);
+    symbreg = Node::parse(rpn);
+    f.close();
+  }
+};
 
 class FrecencyCompletion : public Completion {
 protected:
@@ -22,8 +48,6 @@ protected:
   long long now_t;
 
 public:
-  double HALF_LIFE = 30 * 24 * 60 * 60;
-
   FrecencyCompletion(FileSystem &_fs, string frecency_file = DATA_DIR + FRECENCY_FILE) : Completion(_fs) {
     if (frecency_file.size()) {
       FILE *f = fopen(frecency_file.c_str(), "r");
@@ -70,8 +94,18 @@ public:
       it->second *= exp2(-((double) diff_t / HALF_LIFE));
     }
     */
+    if (FrecencySettings::symbreg == NULL) {
+      FrecencySettings::init();
+    }
+    map<string, double> mapping;
     for (uint i = 0; i < matches.size(); i++) {
-      frecency[dir + "/" + matches[i].name] *= exp2(-((double) (now_t - time[dir + "/" + matches[i].name]) / HALF_LIFE));
+      mapping["x1"] = frecency[dir + "/" + matches[i].name];
+      if (time.find(dir + "/" + matches[i].name) == time.end())
+        mapping["x2"] = 0;
+      else
+        mapping["x2"] = (double) (now_t - time[dir + "/" + matches[i].name]) / 86400;
+
+      frecency[dir + "/" + matches[i].name] = FrecencySettings::symbreg->eval(mapping);
       time[dir + "/" + matches[i].name] = now_t;
     }
 

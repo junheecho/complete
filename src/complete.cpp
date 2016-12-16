@@ -10,6 +10,7 @@
 #include "file_system.h"
 #include "frecency_completion.h"
 #include "test.h"
+#include "symbreg.h"
 
 #define EXIT_FAILURE 1
 
@@ -65,16 +66,10 @@ int main(int argc, char **argv) {
     printf("\nRevLexCompletion\n");
     TestCompletion::test(comp_revlex, argv[2]);
 
-    int one_day = 24 * 60 * 60;
-    vector<int> half_lives = { 1, 7, 30, 60, 180, 365};
-    for (uint i = 0; i < half_lives.size(); i++) {
-      VirtualFileSystem fs_frec;
-      FrecencyCompletion comp_frec(fs_frec, "");
-      comp_frec.HALF_LIFE = half_lives[i] * one_day;
-      printf("\nFrecencyCompletion (%d days)\n", half_lives[i]);
-      TestCompletion::test(comp_frec, argv[2]);
-      //comp_frec.save();
-    }
+    VirtualFileSystem fs_frec;
+    FrecencyCompletion comp_frec(fs_frec, "");
+    printf("\nFrecencyCompletion\n");
+    TestCompletion::test(comp_frec, argv[2]);
   }
 
   return 0;
