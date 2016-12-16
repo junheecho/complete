@@ -178,8 +178,12 @@ def fitness(sample) :
     avgRank = 0
     try:
         avgRank = totRank(sample)
-    except:
-        avgRank = float('inf')
+    except OverflowError:
+	avgRank = float('inf')
+    except ValueError:
+	avgRank = float('inf')
+    except ZeroDivisionError:
+	avgRank = float('inf')
     if avgRank < minAvgRank[9]:
         i = 9
         while sample[0] != minSample[i][0]:
