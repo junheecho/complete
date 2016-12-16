@@ -110,7 +110,7 @@ def totRank(sample):
             didx = route[i+1]
             firstchar = fileNameList[didx][0]
             Files = list(filter(lambda x, fe = fileExist, fn = fileNameList, char = firstchar:
-                                fe[x]&(fileNameList[x][0] == char),
+                                (fe[x] and (fileNameList[x][0] == char)),
                                 fileSystem[sidx][1:]))
             
             sortedFiles = []
@@ -400,6 +400,7 @@ date = 0
 print("construct commits")
 while True:
     line = f.readline()
+    if line == "BEGIN_TEST\n": break
     if line == "\n": continue
     if not line: break
     date = int(line[5:-1])

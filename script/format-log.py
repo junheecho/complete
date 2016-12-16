@@ -6,14 +6,15 @@ import os
 import random
 from datetime import datetime
 
-inputFile = "bison"
-f = open(inputFile)
+inputFile = os.sys.argv[1]
+f = open(inputFile,encoding='UTF8')
 commits = []
 
 ## construct log list
 line = ""
 name = ""
 date = datetime.today()
+historyLen = 0
 print("construct commits")
 while True:
     line = f.readline()
@@ -30,6 +31,7 @@ while True:
             files.append(line[0:-1])
             line = f.readline()
         if len(files) > 0:
+            historyLen += len(files)
             commits.append([date,name,files])
     if not line: break
 f.close()
@@ -51,12 +53,19 @@ while os.path.exists(name) :
     i += 1
     name = inputFile+"_rand"+str(i)
 
-f = open(name,'w')
+begin = int(0.9*historyLen)
+beginchecked = False
+historyNum = 0
+f = open(name,'w',encoding='UTF8')
 for commit in commits:
+    if (beginchecked == False) and (historyNum > begin):
+        beginchecked = True
+        f.write("BEGIN_TEST\n")
     timeLine = "Date:"+str(int(commit[0].timestamp()))+"\n"
     f.write(timeLine)
     f.write("Author:"+commit[1]+"\n")
     for file in commit[2]:
         f.write(file+"\n")
     f.write("\n")
+    historyNum += len(commit[2])
 f.close()
