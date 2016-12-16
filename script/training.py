@@ -6,8 +6,17 @@ import os
 from datetime import datetime
 
 size = 5
-population = 40
-generation = 0
+
+try:
+  population = int(os.sys.argv[2])
+except:
+  population = 10
+
+try:
+  generation = int(os.sys.argv[3])
+except:
+  generation = 5
+
 checkcount = 0
 
 ##unary = ["sqrt","log","-","abs","sin","cos","tan","atan","sinh","cosh","tanh","exp"]
@@ -75,7 +84,7 @@ def totRank(sample):
     fileExist[0] = True
     totRank = 0
     totTry = 0
-##    totOne = 0
+    totOne = 0
     for k in range(len(history)-1):
         if history[k][2] > history[k+1][2]:
             print("histoError",history[k][2]," ",history[k+1][2]," ",k)
@@ -112,10 +121,12 @@ def totRank(sample):
 
             totTry += 1
             
-##            if len(Files) == 1:
-##                totOne += 1
+            if len(Files) == 1:
+                totOne += 1
             
             totRank += sortedFiles.index(didx)+1
+
+    print("Total tries:", totTry, "Total count:", totRank, "# unambiguous:", totOne, "Amb count:", totRank - totOne)
     return totRank/totTry
                 
 ##def constructRandomHistory(commits,dictionary):
@@ -165,10 +176,10 @@ def fitness(sample) :
     print(" ",sample[2])
     checkcount += 1
     avgRank = 0
-##    try:
-    avgRank = totRank(sample)
-##    except:
-##        avgRank = float('inf')
+    try:
+        avgRank = totRank(sample)
+    except:
+        avgRank = float('inf')
     if avgRank < minAvgRank[9]:
         i = 9
         while sample[0] != minSample[i][0]:
@@ -313,7 +324,7 @@ def RPN(tree):
       return RPN(tree[1]) + " " + rpn_unary[tree[0]]
   else:
       if tree[0] == 0:
-          return RPN(tree[1]) + "abs " + RPN(tree[2]) + " " + rpn_binary[tree[0]]
+          return RPN(tree[1]) + " abs " + RPN(tree[2]) + " " + rpn_binary[tree[0]]
       return RPN(tree[1]) + " " + RPN(tree[2]) + " " + rpn_binary[tree[0]]
         
 def createOneSample(size):
@@ -378,7 +389,7 @@ def mutation(samples):
                 traveler = traveler[randint(1,2)]
     return one
 
-inputFile = "bison_rand0"
+inputFile = os.sys.argv[1]
 f = open(inputFile,encoding='UTF8')
 commits = []
 
@@ -421,6 +432,7 @@ print(minAvgRank)
 
 samples = list()
 samples.append(createOneSampleFromTree([3, 0, [4, [2, 1]]]))
+samples.append(createOneSampleFromTree(0))
 while len(samples) < population:
     newsp = createOneSample(size)
     if isConstant(newsp[0]):
@@ -473,7 +485,7 @@ print(minSample[0][2])
 
 # $HOME/.completion/frecency.conf
 home = os.path.expanduser("~")
-outputName = os.path.join(home,".completion","frecensy.conf")
+outputName = os.path.join(home,".completion","frecency.conf")
 f = open(outputName,'w',encoding='UTF8')
 f.write(RPN(minSample[0][0])+"\n")
 f.close()

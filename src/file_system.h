@@ -105,6 +105,8 @@ public:
       file.name = it->second.name;
       if (file.name[0] == '.' && prefix[0] != '.')
         continue;
+      if (it->second.is_dir)
+        file.name += DIR_DELIM;
       if (file.name.substr(0, prefix.size()) == prefix)
         matches.push_back(file);
     }
