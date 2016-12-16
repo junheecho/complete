@@ -23,6 +23,7 @@ public:
     int n_amb = 0;
     int n_tab_for_amb = 0;
     int n_tab = 0;
+    bool begun = false;
 
     ifstream f;
     f.open(path);
@@ -31,6 +32,8 @@ public:
       getline(f, line);
       if (line.size() == 0) {
         continue;
+      } else if (line == "BEGIN_TEST") {
+        begun = true;
       } else if (line.find(":") < line.size()) {
         if (line.substr(0, DATE.size()) == DATE) {
           fs.set_time(stoll(line.substr(DATE.size())));
@@ -48,17 +51,19 @@ public:
           vector<File> matches = comp.get_matches();
           comp.choose((i + name.size() == line.size() ? name : name + DIR_DELIM));
 
-          n_tries++;
-          for (uint j = 0; j < matches.size(); j++) {
-            if (matches[j].name == (i + name.size() == line.size() ? name : name + DIR_DELIM)) {
-              if (matches.size() == 1) {
-                n_unamb++;
-              } else if (matches.size() > 1) {
-                n_amb++;
-                n_tab_for_amb += j + 1;
+          if (begun) {
+            n_tries++;
+            for (uint j = 0; j < matches.size(); j++) {
+              if (matches[j].name == (i + name.size() == line.size() ? name : name + DIR_DELIM)) {
+                if (matches.size() == 1) {
+                  n_unamb++;
+                } else if (matches.size() > 1) {
+                  n_amb++;
+                  n_tab_for_amb += j + 1;
+                }
+                n_tab += j + 1;
+                break;
               }
-              n_tab += j + 1;
-              break;
             }
           }
         }

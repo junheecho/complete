@@ -10,6 +10,14 @@ inputFile = os.sys.argv[1]
 f = open(inputFile,encoding='UTF8')
 commits = []
 
+def readline(f):
+    line = f.readline()
+    if not line:
+        return None
+    if (line[-1] == '\n'):
+        line = line[:-1]
+    return line
+
 ## construct log list
 line = ""
 name = ""
@@ -17,24 +25,25 @@ date = datetime.today()
 historyLen = 0
 print("construct commits")
 while True:
-    line = f.readline()
-    if line == "COMMIT\n" :
+    line = readline(f)
+    if line == "COMMIT" :
         ##print("Find commit")
-        name = f.readline()[:-1]
-        date = datetime.strptime(f.readline()[:-1],"%a, %d %b %Y %H:%M:%S %z")
+        name = readline(f)
+        date = datetime.strptime(readline(f),"%a, %d %b %Y %H:%M:%S %z")
     else :
         files = []
         ##print("srcs")
         while True :
-            if not line : break
-            if line == "\n" : break
-            files.append(line[0:-1])
-            line = f.readline()
+            if line is None : break
+            if line == "" : break
+            files.append(line)
+            line = readline(f)
         if len(files) > 0:
             historyLen += len(files)
             commits.append([date,name,files])
-    if not line: break
+    if line is None : break
 f.close()
+print(len(commits), "commits")
 
     
 random.seed()
@@ -48,10 +57,10 @@ for commit in commits:
             
 
 i=0
-name = inputFile+"_rand"+str(i)
+name = inputFile+"-"+str(i)
 while os.path.exists(name) :
     i += 1
-    name = inputFile+"_rand"+str(i)
+    name = inputFile+"-"+str(i)
 
 begin = int(0.9*historyLen)
 beginchecked = False

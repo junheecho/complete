@@ -10,12 +10,12 @@ size = 5
 try:
   population = int(os.sys.argv[2])
 except:
-  population = 10
+  population = 20
 
 try:
   generation = int(os.sys.argv[3])
 except:
-  generation = 5
+  generation = 10
 
 checkcount = 0
 
