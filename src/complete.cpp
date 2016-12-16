@@ -9,12 +9,11 @@
 #include "completion.h"
 #include "file_system.h"
 #include "frecency_completion.h"
+#include "test.h"
 
 #define EXIT_FAILURE 1
 
 using namespace std;
-
-#define DATE (string("Date:"))
 
 void init() {
   mkdir(DATA_DIR.c_str(), 0777);
@@ -30,16 +29,16 @@ int main(int argc, char **argv) {
   string path = argv[2];
 
   if (cmd == "complete") {
-    RealFileSystem<LexFile> fs_lex;
-    Completion<LexFile> comp_lex(fs_lex, path);
+    RealFileSystem fs;
 
-    RealFileSystem<RevLexFile> fs_revlex;
-    Completion<RevLexFile> comp_revlex(fs_revlex, path);
+    LexCompletion comp_lex(fs);
+    RevLexCompletion comp_revlex(fs);
+    FrecencyCompletion comp_frec(fs);
 
-    RealFileSystem<FrecencyFile> fs_frec;
-    FrecencyCompletion comp_frec(fs_frec, path);
+    Completion *comp = &comp_frec;
 
-    vector<File> matches = comp_frec.get_matches();
+    comp->init(path);
+    vector<File> matches = comp->get_matches();
 
     for (uint i = 0; i < matches.size(); i++)
       printf("%s\n", matches[i].name.c_str());
@@ -49,53 +48,33 @@ int main(int argc, char **argv) {
 
     string choice = argv[3];
 
-    RealFileSystem<FrecencyFile> fs_frec;
-    FrecencyCompletion comp_frec(fs_frec, path);
+    RealFileSystem fs;
+
+    FrecencyCompletion comp_frec(fs);
+
+    comp_frec.init(path);
     comp_frec.choose(choice);
   } else if (cmd == "test") {
-    VirtualFileSystem<LexFile> fs_lex;
+    VirtualFileSystem fs_lex, fs_revlex;
 
-    long long time;
-    int cnt = 0;
+    LexCompletion comp_lex(fs_lex);
+    RevLexCompletion comp_revlex(fs_revlex);
 
-    ifstream f;
-    f.open(argv[2]);
-    while (!f.eof()) {
-      string line;
-      getline(f, line);
-      if (line.size() == 0) {
-        continue;
-      } else if (line.find(":") < line.size()) {
-        if (line.substr(0, sizeof(DATE)) == DATE) {
-          time = stoll(line.substr(DATE.size()));
-        }
-      } else {
-        string name;
+    printf("\nLexCompletion\n");
+    TestCompletion::test(comp_lex, argv[2]);
+    printf("\nRevLexCompletion\n");
+    TestCompletion::test(comp_revlex, argv[2]);
 
-        line = "/" + line;
-        fs_lex.create_file(line);
-        for (uint i = 1; i < line.size(); i += (name + DIR_DELIM).size()) {
-          size_t found = line.find(DIR_DELIM, i);
-          name = line.substr(i, found - i);
-
-          Completion<LexFile> comp_lex(fs_lex, line.substr(0, i + 1));
-          vector<LexFile> matches = comp_lex.get_matches();
-
-          for (uint j = 0; j < matches.size(); j++) {
-            if (matches[j].name == name) {
-              cnt += j + 1;
-              break;
-            }
-          }
-        }
-      }
+    int one_day = 24 * 60 * 60;
+    vector<int> half_lives = { 1, 7, 30, 60, 180, 365};
+    for (uint i = 0; i < half_lives.size(); i++) {
+      VirtualFileSystem fs_frec;
+      FrecencyCompletion comp_frec(fs_frec, "");
+      comp_frec.HALF_LIFE = half_lives[i] * one_day;
+      printf("\nFrecencyCompletion (%d days)\n", half_lives[i]);
+      TestCompletion::test(comp_frec, argv[2]);
+      //comp_frec.save();
     }
-    f.close();
-
-    // TODO:
-    time = time;
-
-    printf("%d\n", cnt);
   }
 
   return 0;
