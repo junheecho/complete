@@ -116,7 +116,7 @@ def totRank(sample):
             sortedFiles = []
             curtime = history[k][2]
             sortedFiles = frequencyRanking(Files,curtime,fileSystem,frequency,modifiedtime,sample)
-            frequency[didx] += 1
+            frequency[didx] += 1.0
 
 
             totTry += 1
@@ -178,12 +178,10 @@ def fitness(sample) :
     avgRank = 0
     try:
         avgRank = totRank(sample)
-    except OverflowError:
-	avgRank = float('inf')
-    except ValueError:
-	avgRank = float('inf')
-    except ZeroDivisionError:
-	avgRank = float('inf')
+    except KeyboardInterrupt:
+        exit(0)
+    except:
+        avgRank = float('inf')
     if avgRank < minAvgRank[9]:
         i = 9
         while sample[0] != minSample[i][0]:
@@ -345,7 +343,7 @@ def constructPool(size):
     unit = int(size/5)
     pool = [i for i in range(unit)]*4
     pool += [i for i in range(unit,unit*2)]*2
-    pool += [i for i in range(unit*3,unit*4)]*1
+    pool += [i for i in range(unit*2,unit*4)]*1
     
 def crossover(samples):
     global pool
@@ -438,6 +436,7 @@ print(minAvgRank)
 samples = list()
 samples.append(createOneSampleFromTree([3, 0, [4, [2, 1]]]))
 samples.append(createOneSampleFromTree(0))
+samples.append(createOneSampleFromTree([0, 0, 0]))
 while len(samples) < population:
     newsp = createOneSample(size)
     if isConstant(newsp[0]):
@@ -495,3 +494,7 @@ f = open(outputName,'w',encoding='UTF8')
 f.write(RPN(minSample[0][0])+"\n")
 f.close()
 #mses = [mse(constant, eqs[i]) for i in range(100)]
+for i in range(len(minSample)):
+  if not minSample[i][0]:
+    break
+  print(RPN(minSample[i][0]), "\n", minSample[i][2], "\n", minAvgRank[i])
